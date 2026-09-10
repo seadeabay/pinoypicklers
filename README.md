@@ -1,7 +1,7 @@
 # 🏓 PinoyPicklers by Giftists
 
 A full-stack pickleball tournament & queue management app built with **Next.js 14**, **React**, **TypeScript**, **Prisma**, and **SQLite via Turso**.
-
+ 
 ---
 
 ## ✨ Features
