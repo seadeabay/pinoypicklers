@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("spectator") // admin | player | spectator
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  playerProfile Player?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Players ───────────────────────────────────────────────────────────────────
+model Player {
+  id          String   @id @default(cuid())
+  userId      String?  @unique
+  name        String
+  nickname    String?
+  rating      Int      @default(3) // 1-5 skill rating
+  avatarColor String   @default("#5fcf7a")
+  totalWins   Int      @default(0)
+  totalLosses Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user              User?               @relation(fields: [userId], references: [id])
+  tournamentEntries TournamentTeamPlayer[]
+  queueEntries      QueueEntry[]
+}
+
+// ── Tournaments ───────────────────────────────────────────────────────────────
+model Tournament {
+  id          String   @id @default(cuid())
+  name        String
+  location    String?
+  date        String?
+  description String?
+  status      String   @default("draft") // draft | active | completed
+  format      String   @default("round_robin")
+  numCourts   Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teams   TournamentTeam[]
+  matches Match[]
+}
+
+model TournamentTeam {
+  id           String   @id @default(cuid())
+  tournamentId String
+  name         String
+  wins         Int      @default(0)
+  losses       Int      @default(0)
+  points       Int      @default(0)
+  matchesPlayed Int     @default(0)
+  createdAt    DateTime @default(now())
+
+  tournament Tournament             @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  players    TournamentTeamPlayer[]
+  matchWins  Match[]                @relation("MatchWinner")
+  team1Matches Match[]              @relation("Team1")
+  team2Matches Match[]              @relation("Team2")
+}
+
+model TournamentTeamPlayer {
+  id       String @id @default(cuid())
+  teamId   String
+  playerId String
+
+  team   TournamentTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player Player         @relation(fields: [playerId], references: [id])
+
+  @@unique([teamId, playerId])
+}
+
+model Match {
+  id           String   @id @default(cuid())
+  tournamentId String
+  team1Id      String
+  team2Id      String
+  winnerId     String?
+  score1       Int?
+  score2       Int?
+  courtLabel   String?
+  scheduled    Boolean  @default(false)
+  completed    Boolean  @default(false)
+  round        Int      @default(0)
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+
+  tournament Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team1      TournamentTeam @relation("Team1", fields: [team1Id], references: [id])
+  team2      TournamentTeam @relation("Team2", fields: [team2Id], references: [id])
+  winner     TournamentTeam? @relation("MatchWinner", fields: [winnerId], references: [id])
+}
+
+// ── Queue Sessions ────────────────────────────────────────────────────────────
+model QueueSession {
+  id          String   @id @default(cuid())
+  name        String   @default("Session")
+  rotMode     String   @default("rotate") // rotate | winners | splitqueue
+  pairMode    String   @default("random") // random | fixed
+  numCourts   Int      @default(1)
+  status      String   @default("active") // active | completed
+  gamesPlayed Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courts       Court[]
+  queueEntries QueueEntry[]
+  gameHistory  GameRecord[]
+}
+
+model Court {
+  id        String  @id @default(cuid())
+  sessionId String
+  label     String
+  isActive  Boolean @default(false)
+
+  session  QueueSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  players  CourtPlayer[]
+}
+
+model CourtPlayer {
+  id       String @id @default(cuid())
+  courtId  String
+  playerId String
+  side     String // A | B
+  position Int    // 0 or 1 within side
+
+  court  Court  @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@unique([courtId, playerId])
+}
+
+model QueueEntry {
+  id          String   @id @default(cuid())
+  sessionId   String
+  playerId    String
+  queueType   String   @default("general") // general | winner | loser | bye
+  position    Int
+  createdAt   DateTime @default(now())
+
+  session QueueSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  player  Player       @relation(fields: [playerId], references: [id])
+}
+
+model GameRecord {
+  id          String   @id @default(cuid())
+  sessionId   String
+  courtLabel  String
+  winnerIds   String   // JSON array
+  loserIds    String   // JSON array
+  playedAt    DateTime @default(now())
+
+  session QueueSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}

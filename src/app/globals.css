@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-green: #5fcf7a;
+    --brand-yellow: #f5c842;
+    --brand-dark: #071f13;
+  }
+
+  * { -webkit-tap-highlight-color: transparent; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+}
+
+@layer components {
+  .page-gradient {
+    @apply min-h-screen bg-gradient-to-br from-[#0a2a1a] via-[#0d3d24] to-[#071f13];
+  }
+
+  .glass-card {
+    @apply bg-white/5 border border-white/10 rounded-2xl;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:bg-white/8 hover:border-white/20 transition-all cursor-pointer;
+  }
+
+  .btn-primary {
+    @apply bg-brand-green text-[#001a0a] font-bold rounded-xl px-4 py-3 text-sm
+           hover:bg-green-400 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-white/8 border border-white/15 text-white/80 font-medium rounded-xl px-4 py-3 text-sm
+           hover:bg-white/12 active:scale-95 transition-all;
+  }
+
+  .btn-danger {
+    @apply bg-red-500/15 border border-red-500/30 text-red-400 font-bold rounded-xl px-4 py-3 text-sm
+           hover:bg-red-500/25 active:scale-95 transition-all;
+  }
+
+  .btn-yellow {
+    @apply bg-yellow-400/12 border border-yellow-400/40 text-yellow-400 font-bold rounded-xl px-4 py-3 text-sm
+           hover:bg-yellow-400/20 active:scale-95 transition-all;
+  }
+
+  .input-field {
+    @apply w-full bg-white/8 border border-white/15 rounded-xl px-4 py-3 text-white text-sm
+           placeholder:text-white/30 outline-none focus:border-brand-green/60 focus:bg-white/10 transition-all;
+  }
+
+  .tab-active {
+    @apply text-brand-green border-b-2 border-brand-green;
+  }
+
+  .tab-inactive {
+    @apply text-white/35 border-b-2 border-transparent hover:text-white/60;
+  }
+
+  .badge-green { @apply bg-green-500/20 text-green-400 text-xs font-bold px-2 py-0.5 rounded-full; }
+  .badge-yellow { @apply bg-yellow-400/20 text-yellow-400 text-xs font-bold px-2 py-0.5 rounded-full; }
+  .badge-red { @apply bg-red-500/20 text-red-400 text-xs font-bold px-2 py-0.5 rounded-full; }
+  .badge-purple { @apply bg-purple-400/20 text-purple-400 text-xs font-bold px-2 py-0.5 rounded-full; }
+  .badge-blue { @apply bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-0.5 rounded-full; }
+}
