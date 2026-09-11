@@ -72,8 +72,9 @@ model Player {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user              User?               @relation(fields: [userId], references: [id])
+  user              User?                @relation(fields: [userId], references: [id])
   tournamentEntries TournamentTeamPlayer[]
+  courtPlayers      CourtPlayer[]
   queueEntries      QueueEntry[]
 }
 
